@@ -16,26 +16,42 @@
 }
 
 :root {
-  --color-bg: #f5f6f8;
-  --color-surface: #ffffff;
-  --color-border: #e2e5ea;
-  --color-text: #1f2430;
-  --color-text-muted: #6b7280;
-  --color-accent: #2f6feb;
-  --color-accent-dark: #2559c4;
-  --color-accent-soft: #eaf1ff;
-  --color-danger: #d64545;
-  --color-success: #1a9c5e;
+  /* Paper & Ledger tokens — same five brand colors as style.css,
+     kept under the site's original --color-* names so every rule
+     below still works, just repainted. */
+  --ink: #11161c;
+  --paper: #fcfbf8;
+  --ledger: #e4e1d8;
+  --accent: #2f6f5e;
+  --stamp: #c2413a;
+
+  --color-bg: color-mix(in srgb, var(--paper) 92%, var(--ink) 8%);
+  --color-surface: var(--paper);
+  --color-border: color-mix(in srgb, var(--ledger) 55%, var(--ink) 45%);
+  --color-text: var(--ink);
+  --color-text-muted: color-mix(in srgb, var(--ink) 65%, var(--paper) 35%);
+  --color-accent: var(--accent);
+  --color-accent-dark: color-mix(in srgb, var(--accent) 75%, var(--ink) 25%);
+  --color-accent-soft: color-mix(in srgb, var(--accent) 13%, var(--paper) 87%);
+  --color-danger: var(--stamp);
+  --color-success: var(--accent);
   --radius: 10px;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
-  --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  --shadow-sm: 0 1px 2px rgba(17, 22, 28, 0.07);
+  --shadow-md: 0 3px 8px rgba(17, 22, 28, 0.08), 0 1px 2px rgba(17, 22, 28, 0.06);
+  --font-display: "Bricolage Grotesque", "Segoe UI", Georgia, serif;
+  --font-sans: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --content-max: 1400px;
 }
 
 html {
   font-size: 16px;
-  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -47,8 +63,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, p {
+h1, h2, h3, h4 {
   margin: 0;
+  font-family: var(--font-display);
+}
+
+p {
+  margin: 0;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2.5px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 a {
@@ -295,6 +324,29 @@ button {
   max-width: 62ch;
 }
 
+/* Hero content staggers in once on load, never repeats. */
+@media (prefers-reduced-motion: no-preference) {
+  .page-hero__inner > * {
+    opacity: 0;
+    animation: hero-rise 550ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .page-hero__inner > *:nth-child(1) { animation-delay: 0ms; }
+  .page-hero__inner > *:nth-child(2) { animation-delay: 90ms; }
+  .page-hero__inner > *:nth-child(3) { animation-delay: 160ms; }
+
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
 .content-section {
   padding: 2.5rem 1.5rem;
 }
@@ -428,15 +480,21 @@ button {
   text-decoration: none;
   color: var(--color-text);
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s ease, transform 0.05s ease;
+  transition: border-color 0.15s ease;
 }
 
 .related-card:hover {
   border-color: var(--color-accent);
 }
 
-.related-card:active {
-  transform: translateY(1px);
+@media (prefers-reduced-motion: no-preference) {
+  .related-card {
+    transition: border-color 0.15s ease, transform 0.05s ease;
+  }
+
+  .related-card:active {
+    transform: translateY(1px);
+  }
 }
 
 .related-card__label {
@@ -626,11 +684,21 @@ button {
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.btn:active {
-  transform: translateY(1px);
+@media (prefers-reduced-motion: no-preference) {
+  .btn {
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+
+  .btn:not(:disabled):active {
+    transform: translateY(1px);
+  }
 }
 
 .btn--primary {
@@ -638,7 +706,12 @@ button {
   color: #fff;
 }
 
-.btn--primary:hover {
+/* :hover still matches a disabled button in most engines (it tracks
+   cursor position, not interactivity) — gate every hover color change
+   on :not(:disabled) so a disabled button (e.g. the download button
+   mid-morph on tool pages) doesn't flash a hover color while the
+   cursor happens to be resting on it. */
+.btn--primary:not(:disabled):hover {
   background: var(--color-accent-dark);
 }
 
@@ -648,7 +721,7 @@ button {
   border-color: var(--color-border);
 }
 
-.btn--ghost:hover {
+.btn--ghost:not(:disabled):hover {
   background: var(--color-surface);
   color: var(--color-danger);
   border-color: var(--color-danger);

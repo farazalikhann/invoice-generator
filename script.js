@@ -75,9 +75,14 @@
     validationMessage: document.getElementById("validation-message"),
 
     downloadPdfBtn: document.getElementById("download-pdf-btn"),
+    downloadPdfLabel: document.querySelector("#download-pdf-btn .btn-download__label"),
     duplicateBtn: document.getElementById("duplicate-btn"),
     printBtn: document.getElementById("print-btn"),
     clearSavedBtn: document.getElementById("clear-saved-btn"),
+
+    previewFab: document.getElementById("preview-fab"),
+    previewFabLabel: document.querySelector("#preview-fab .preview-fab__label"),
+    drawerBackdrop: document.getElementById("drawer-backdrop"),
 
     historyBtn: document.getElementById("history-btn"),
     historyOverlay: document.getElementById("history-overlay"),
@@ -87,6 +92,7 @@
     clearHistoryBtn: document.getElementById("clear-history-btn"),
 
     // Preview targets
+    previewColumn: document.querySelector(".preview-column"),
     invoicePreview: document.getElementById("invoice-preview"),
     prevLogo: document.getElementById("prev-logo"),
     paidStamp: document.getElementById("paid-stamp"),
@@ -127,7 +133,16 @@
   // and persisted to their own localStorage entries.
   var currentLogo = { dataUrl: null, width: 0, height: 0 };
   var currentTemplate = "modern";
-  var currentAccentColor = "#2f6feb";
+  var currentAccentColor = "#2f6f5e";
+
+  // Motion state
+  var wasPaidStampVisible = false;
+  var firstRenderDone = false;
+  var numberRollState = typeof WeakMap === "function" ? new WeakMap() : null;
+
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
 
   /* ========================================================
      2. Line items: create / delete / read
@@ -137,16 +152,19 @@
     itemRowCount += 1;
     var rowId = "item-" + itemRowCount;
 
+    var wrap = document.createElement("div");
+    wrap.className = "item-row-wrap";
+    wrap.dataset.rowId = rowId;
+
     var row = document.createElement("div");
     row.className = "item-row";
-    row.dataset.rowId = rowId;
 
     row.innerHTML =
-      '<input type="text" class="item-desc" placeholder="Item description" />' +
+      '<input type="text" class="item-desc" placeholder="What did you deliver?" />' +
       '<input type="number" class="item-qty" min="0" step="1" value="1" />' +
       '<input type="number" class="item-rate" min="0" step="0.01" value="0" />' +
       '<div class="item-amount">0.00</div>' +
-      '<button type="button" class="delete-row-btn" aria-label="Delete row">&times;</button>';
+      '<button type="button" class="delete-row-btn" aria-label="Remove this line item">&times;</button>';
 
     if (prefill) {
       row.querySelector(".item-desc").value = prefill.description || "";
@@ -154,18 +172,42 @@
       row.querySelector(".item-rate").value = prefill.rate != null ? prefill.rate : 0;
     }
 
-    el.itemsBody.appendChild(row);
+    wrap.appendChild(row);
+    el.itemsBody.appendChild(wrap);
 
     row.querySelectorAll("input").forEach(function (input) {
       input.addEventListener("input", handleChange);
     });
     row.querySelector(".delete-row-btn").addEventListener("click", function () {
-      row.remove();
-      updateDeleteButtonsState();
-      handleChange();
+      removeItemRow(wrap);
     });
 
     updateDeleteButtonsState();
+  }
+
+  // Collapses and fades a row out, then removes it once the transition
+  // finishes (or after a fallback timeout, in case transitionend never
+  // fires — e.g. reduced motion, or the element was already display:none).
+  function removeItemRow(wrap) {
+    if (prefersReducedMotion()) {
+      wrap.remove();
+      updateDeleteButtonsState();
+      handleChange();
+      return;
+    }
+
+    wrap.classList.add("is-removing");
+    var finished = false;
+    function finish() {
+      if (finished) return;
+      finished = true;
+      wrap.removeEventListener("transitionend", finish);
+      wrap.remove();
+      updateDeleteButtonsState();
+      handleChange();
+    }
+    wrap.addEventListener("transitionend", finish);
+    setTimeout(finish, 260);
   }
 
   function updateDeleteButtonsState() {
@@ -246,6 +288,55 @@
   }
 
   /* ========================================================
+     4b. Rolling number animation for totals — tweens the displayed
+     number from wherever it currently is to the new target over
+     300ms, ease-out. Only totals get this treatment; every other
+     preview field updates instantly on keystroke (see renderPreview).
+     ======================================================== */
+
+  function animateNumberTo(target, targetValue, formatFn) {
+    if (prefersReducedMotion() || !numberRollState) {
+      target.textContent = formatFn(targetValue);
+      return;
+    }
+
+    var state = numberRollState.get(target);
+    var fromValue = state ? state.displayed : targetValue;
+
+    if (Math.abs(fromValue - targetValue) < 0.005) {
+      target.textContent = formatFn(targetValue);
+      numberRollState.set(target, { raf: null, displayed: targetValue });
+      return;
+    }
+
+    if (state && state.raf) {
+      cancelAnimationFrame(state.raf);
+    }
+
+    var startTime = null;
+    var duration = 300;
+
+    function tick(timestamp) {
+      if (startTime === null) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      var current = fromValue + (targetValue - fromValue) * eased;
+      target.textContent = formatFn(current);
+
+      if (progress < 1) {
+        var raf = requestAnimationFrame(tick);
+        numberRollState.set(target, { raf: raf, displayed: current });
+      } else {
+        target.textContent = formatFn(targetValue);
+        numberRollState.set(target, { raf: null, displayed: targetValue });
+      }
+    }
+
+    var firstRaf = requestAnimationFrame(tick);
+    numberRollState.set(target, { raf: firstRaf, displayed: fromValue });
+  }
+
+  /* ========================================================
      5. Preview rendering
      ======================================================== */
 
@@ -278,8 +369,17 @@
     el.prevIssueDate.textContent = formatDate(el.issueDate.value);
     el.prevDueDate.textContent = formatDate(el.dueDate.value);
 
-    // Paid watermark
-    el.paidStamp.classList.toggle("is-visible", el.markPaid.checked);
+    // Paid watermark — only replay the "stamp" animation on the moment it
+    // becomes checked, not on every keystroke while it's already checked.
+    var isPaid = el.markPaid.checked;
+    if (isPaid && !wasPaidStampVisible) {
+      el.paidStamp.classList.remove("is-stamping");
+      void el.paidStamp.offsetWidth; // force reflow so the animation can restart
+      el.paidStamp.classList.add("is-visible", "is-stamping");
+    } else if (!isPaid) {
+      el.paidStamp.classList.remove("is-visible", "is-stamping");
+    }
+    wasPaidStampVisible = isPaid;
 
     // Items table
     el.prevItemsBody.innerHTML = "";
@@ -304,11 +404,27 @@
       });
     }
 
-    // Totals
-    el.prevSubtotal.textContent = formatCurrency(totals.subtotal);
-    el.prevDiscount.textContent = "-" + formatCurrency(totals.discountAmount);
-    el.prevTax.textContent = formatCurrency(totals.taxAmount);
-    el.prevTotal.textContent = formatCurrency(totals.total);
+    // Totals — roll to the new value instead of snapping, but only once
+    // there's been a first paint (rolling up from nothing on page load
+    // isn't useful, it's just the initial number appearing).
+    if (!firstRenderDone) {
+      el.prevSubtotal.textContent = formatCurrency(totals.subtotal);
+      el.prevDiscount.textContent = "-" + formatCurrency(totals.discountAmount);
+      el.prevTax.textContent = formatCurrency(totals.taxAmount);
+      el.prevTotal.textContent = formatCurrency(totals.total);
+      if (numberRollState) {
+        numberRollState.set(el.prevSubtotal, { raf: null, displayed: totals.subtotal });
+        numberRollState.set(el.prevDiscount, { raf: null, displayed: totals.discountAmount });
+        numberRollState.set(el.prevTax, { raf: null, displayed: totals.taxAmount });
+        numberRollState.set(el.prevTotal, { raf: null, displayed: totals.total });
+      }
+      firstRenderDone = true;
+    } else {
+      animateNumberTo(el.prevSubtotal, totals.subtotal, function (v) { return formatCurrency(v); });
+      animateNumberTo(el.prevDiscount, totals.discountAmount, function (v) { return "-" + formatCurrency(v); });
+      animateNumberTo(el.prevTax, totals.taxAmount, function (v) { return formatCurrency(v); });
+      animateNumberTo(el.prevTotal, totals.total, function (v) { return formatCurrency(v); });
+    }
 
     // Notes / terms
     el.prevNotes.textContent = el.notes.value.trim();
@@ -486,13 +602,46 @@
      9. Appearance settings (template + accent color)
      ======================================================== */
 
-  function setTemplate(template) {
+  function setTemplate(template, opts) {
+    opts = opts || {};
+    var changed = template !== el.invoicePreview.dataset.template;
     currentTemplate = template;
-    el.invoicePreview.dataset.template = template;
     templateOptionButtons.forEach(function (btn) {
       btn.classList.toggle("is-active", btn.dataset.template === template);
     });
     saveSettings();
+
+    if (!changed || opts.silent || prefersReducedMotion()) {
+      el.invoicePreview.dataset.template = template;
+      return;
+    }
+    flipToTemplate(template);
+  }
+
+  // A horizontal card flip: rotate to edge-on (90deg), swap the template
+  // at that midpoint while nothing is visible face-on, then continue the
+  // rotation through to flat again.
+  function flipToTemplate(template) {
+    var sheet = el.invoicePreview;
+    var half = 200; // matches --dur-flip in style.css
+    var easing = "cubic-bezier(.4,0,.2,1)";
+
+    sheet.style.transition = "transform " + half + "ms " + easing;
+    sheet.style.transform = "rotateY(90deg)";
+
+    setTimeout(function () {
+      sheet.dataset.template = template;
+      sheet.style.transition = "none";
+      sheet.style.transform = "rotateY(-90deg)";
+      void sheet.offsetWidth; // force reflow before re-enabling the transition
+      sheet.style.transition = "transform " + half + "ms " + easing;
+      sheet.style.transform = "rotateY(0deg)";
+
+      setTimeout(function () {
+        sheet.style.transition = "";
+        sheet.style.transform = "";
+      }, half + 40);
+    }, half);
   }
 
   function setAccentColor(hex) {
@@ -901,6 +1050,16 @@
     }
   }
 
+  // Button states: idle -> loading -> success -> idle. Loading is held for
+  // a minimum visible duration even though generation itself is near-
+  // instant, so the progress state actually reads as a step, not a flicker.
+  function setDownloadButtonState(state) {
+    el.downloadPdfBtn.dataset.state = state;
+    var labels = { idle: "Download PDF", loading: "Generating…", success: "Downloaded" };
+    if (el.downloadPdfLabel) el.downloadPdfLabel.textContent = labels[state];
+    el.downloadPdfBtn.disabled = state !== "idle";
+  }
+
   function downloadPdf() {
     var errors = validateInvoice();
     if (errors.length) {
@@ -915,10 +1074,22 @@
 
     var jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
     if (!jsPDFCtor) {
-      alert("PDF library is still loading. Please try again in a moment.");
+      alert("The PDF library is still loading — try again in a moment.");
       return;
     }
 
+    setDownloadButtonState("loading");
+    var minLoadingTime = prefersReducedMotion() ? 0 : 450;
+    setTimeout(function () {
+      generatePdf(jsPDFCtor);
+      setDownloadButtonState("success");
+      setTimeout(function () {
+        setDownloadButtonState("idle");
+      }, 1500);
+    }, minLoadingTime);
+  }
+
+  function generatePdf(jsPDFCtor) {
     var items = readItems();
     var totals = calculateTotals(items);
     var doc = new jsPDFCtor({ unit: "pt", format: "a4" });
@@ -1146,6 +1317,42 @@
   }
 
   /* ========================================================
+     13b. Mobile preview drawer — on narrow viewports the preview
+     sheet lives off-screen until the floating "Preview Invoice"
+     button opens it as a bottom drawer.
+     ======================================================== */
+
+  function openPreviewDrawer() {
+    el.previewColumn.classList.add("is-drawer-open");
+    el.drawerBackdrop.hidden = false;
+    requestAnimationFrame(function () {
+      el.drawerBackdrop.classList.add("is-visible");
+    });
+    el.previewFab.setAttribute("aria-expanded", "true");
+    if (el.previewFabLabel) el.previewFabLabel.textContent = "Close Preview";
+    document.body.classList.add("drawer-open-lock");
+  }
+
+  function closePreviewDrawer() {
+    el.previewColumn.classList.remove("is-drawer-open");
+    el.drawerBackdrop.classList.remove("is-visible");
+    el.previewFab.setAttribute("aria-expanded", "false");
+    if (el.previewFabLabel) el.previewFabLabel.textContent = "Preview Invoice";
+    document.body.classList.remove("drawer-open-lock");
+    setTimeout(function () {
+      el.drawerBackdrop.hidden = true;
+    }, 320);
+  }
+
+  function togglePreviewDrawer() {
+    if (el.previewColumn.classList.contains("is-drawer-open")) {
+      closePreviewDrawer();
+    } else {
+      openPreviewDrawer();
+    }
+  }
+
+  /* ========================================================
      14. Init
      ======================================================== */
 
@@ -1154,7 +1361,7 @@
     loadSettings();
     setDefaultDates();
 
-    setTemplate(currentTemplate);
+    setTemplate(currentTemplate, { silent: true });
     setAccentColor(currentAccentColor);
     el.accentColor.value = currentAccentColor;
 
@@ -1206,6 +1413,14 @@
       if (e.target === el.historyOverlay) closeHistoryPanel();
     });
     el.clearHistoryBtn.addEventListener("click", clearAllHistory);
+
+    el.previewFab.addEventListener("click", togglePreviewDrawer);
+    el.drawerBackdrop.addEventListener("click", closePreviewDrawer);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && el.previewColumn.classList.contains("is-drawer-open")) {
+        closePreviewDrawer();
+      }
+    });
 
     renderPreview();
   }

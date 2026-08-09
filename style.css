@@ -1,29 +1,81 @@
 /* ==========================================================
-   Reset & base
+   Invoice Generator — "Paper & Ledger" design system
+   Plain CSS, no preprocessor. Fonts are loaded via <link> tags
+   in each page's <head> (Bricolage Grotesque, Public Sans,
+   IBM Plex Mono from Google Fonts) — see index.html.
+
+   Motion policy: every animation/transition listed in the brief
+   (hero rise, row enter/exit, paper settle, template flip,
+   number roll, paid stamp, button morph, button lift) is defined
+   ONLY inside `@media (prefers-reduced-motion: no-preference)`
+   blocks. Users who prefer reduced motion get the same end
+   states instantly, with no transform/opacity animation at all.
+   Only `transform` and `opacity` are animated anywhere in this
+   file — with one deliberate, documented exception: collapsing a
+   deleted line item's vertical space needs *some* size-adjacent
+   property, so that one transition also animates
+   `grid-template-rows` (a modern, non-layout-thrashing way to
+   animate toward "auto height" — see ".item-row-wrap").
    ========================================================== */
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+/* ==========================================================
+   Design tokens — every color below is derived from the five
+   brief-mandated brand tokens via color-mix().
+   ========================================================== */
 :root {
-  --color-bg: #f5f6f8;
-  --color-surface: #ffffff;
-  --color-border: #e2e5ea;
-  --color-text: #1f2430;
-  --color-text-muted: #6b7280;
-  --color-accent: #2f6feb;
-  --color-accent-dark: #2559c4;
-  --color-accent-soft: #eaf1ff;
-  --color-danger: #d64545;
-  --color-success: #1a9c5e;
+  /* Brand tokens */
+  --ink: #11161c;
+  --paper: #fcfbf8;
+  --ledger: #e4e1d8;
+  --accent: #2f6f5e;
+  --stamp: #c2413a;
+
+  /* Derived surfaces & text */
+  --paper-shade: color-mix(in srgb, var(--paper) 92%, var(--ink) 8%);
+  --paper-deep: color-mix(in srgb, var(--paper) 82%, var(--ink) 18%);
+  --ink-muted: color-mix(in srgb, var(--ink) 65%, var(--paper) 35%);
+  --ink-faint: color-mix(in srgb, var(--ink) 38%, var(--paper) 62%);
+  --ledger-line: var(--ledger);
+  --ledger-strong: color-mix(in srgb, var(--ledger) 55%, var(--ink) 45%);
+  --accent-soft: color-mix(in srgb, var(--accent) 13%, var(--paper) 87%);
+  --accent-strong: color-mix(in srgb, var(--accent) 75%, var(--ink) 25%);
+  --stamp-soft: color-mix(in srgb, var(--stamp) 6%, var(--paper) 94%);
+  --stamp-strong: color-mix(in srgb, var(--stamp) 15%, var(--ink) 85%);
+
+  /* Shadows — numeric equivalent of --ink (17, 22, 28) at low alpha,
+     since box-shadow can't consume a hex custom property directly */
+  --shadow-sm: 0 1px 2px rgba(17, 22, 28, 0.07);
+  --shadow-md: 0 3px 8px rgba(17, 22, 28, 0.08), 0 1px 2px rgba(17, 22, 28, 0.06);
+  --shadow-paper:
+    0 1px 1px rgba(17, 22, 28, 0.04),
+    0 8px 16px rgba(17, 22, 28, 0.07),
+    0 28px 56px rgba(17, 22, 28, 0.12);
+
   --radius: 10px;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
-  --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  --radius-sm: 7px;
+  --radius-lg: 16px;
+
+  /* Typography */
+  --font-display: "Bricolage Grotesque", "Segoe UI", Georgia, serif;
+  --font-sans: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Motion durations, named per the brief */
+  --dur-row: 200ms;
+  --dur-roll: 300ms;
+  --dur-stamp: 380ms;
+  --dur-flip: 200ms;
 }
 
+/* ==========================================================
+   Base
+   ========================================================== */
 html {
   font-size: 16px;
 }
@@ -31,8 +83,8 @@ html {
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--paper-shade);
+  color: var(--ink);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -45,6 +97,40 @@ button {
   font-family: inherit;
 }
 
+/* Locks background scroll while the mobile preview drawer is open */
+body.drawer-open-lock {
+  overflow: hidden;
+}
+
+/* Numeric values line up in columns everywhere they appear */
+input[type="number"],
+.item-amount,
+#invoice-number,
+.preview-table .col-num,
+.totals-row span,
+#prev-invoice-number,
+.history-cell--number,
+.history-cell--amount,
+.btn-download__count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================
+   Focus — visible in the accent color on every interactive
+   element, everywhere, no exceptions.
+   ========================================================== */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2.5px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* ==========================================================
    Tool toolbar
    The site-wide nav header and footer live in assets/css/site.css
@@ -52,8 +138,8 @@ button {
    directly above the invoice form/preview.
    ========================================================== */
 .tool-toolbar {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--paper);
+  border-bottom: 1px solid var(--ledger-strong);
   padding: 1.5rem 1.5rem 1.25rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -65,7 +151,7 @@ button {
 }
 
 .tool-toolbar__subtitle {
-  color: var(--color-text-muted);
+  color: var(--ink-muted);
   font-size: 0.95rem;
 }
 
@@ -75,7 +161,7 @@ button {
 .app-layout {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1.75rem 1.5rem;
+  padding: 1.75rem 1.5rem 4rem;
   display: grid;
   grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
   gap: 1.75rem;
@@ -85,6 +171,7 @@ button {
 @media (max-width: 960px) {
   .app-layout {
     grid-template-columns: 1fr;
+    padding-bottom: 6rem;
   }
 }
 
@@ -96,11 +183,38 @@ button {
 .preview-column {
   position: sticky;
   top: 1.75rem;
+  perspective: 1800px;
 }
 
 @media (max-width: 960px) {
+  /* On mobile the preview becomes a bottom drawer, opened with the
+     floating "Preview Invoice" button — see .preview-fab below. */
   .preview-column {
-    position: static;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    max-height: 82vh;
+    margin: 0;
+    padding: 1.1rem 1.1rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    background: var(--paper-shade);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-paper);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: 60;
+    transform: translateY(105%);
+  }
+
+  .preview-column.is-drawer-open {
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .preview-column {
+      transition: transform 320ms cubic-bezier(0.22, 0.8, 0.28, 1);
+    }
   }
 }
 
@@ -113,8 +227,8 @@ button {
      table). Overriding it here is what lets .items-scroll do the
      scrolling instead of the whole page overflowing horizontally. */
   min-width: 0;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--paper);
+  border: 1px solid var(--ledger-strong);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   padding: 1.25rem;
@@ -122,10 +236,11 @@ button {
 }
 
 .card legend {
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
   padding: 0 0.4rem;
-  color: var(--color-text);
+  color: var(--ink);
 }
 
 .field {
@@ -158,10 +273,12 @@ button {
 
 label {
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--color-text-muted);
-  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  margin-bottom: 0.35rem;
 }
 
 input[type="text"],
@@ -173,13 +290,18 @@ select,
 textarea {
   width: 100%;
   padding: 0.55rem 0.7rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  border: 1px solid var(--ledger-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink);
   font-size: 0.92rem;
   font-family: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  /* Only border-color transitions — Chromium fails to interpolate a
+     transitioned box-shadow whose color is a color-mix() result
+     (reproducible: box-shadow silently computes to transparent).
+     The focus ring below appears instantly instead, which is fine
+     for a 3px ring and arguably better for a clear focus cue. */
+  transition: border-color 0.15s ease;
 }
 
 textarea {
@@ -191,8 +313,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 /* Checkbox field (mark as paid) */
@@ -206,7 +328,7 @@ textarea:focus {
   gap: 0.55rem;
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--ink);
   cursor: pointer;
   margin-bottom: 0;
 }
@@ -214,7 +336,7 @@ textarea:focus {
 .checkbox-label input[type="checkbox"] {
   width: 1.05rem;
   height: 1.05rem;
-  accent-color: var(--color-accent);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
@@ -230,6 +352,7 @@ textarea:focus {
   flex: 1 1 auto;
   min-width: 0;
   font-size: 0.82rem;
+  color: var(--ink-muted);
 }
 
 /* Template switcher */
@@ -241,10 +364,10 @@ textarea:focus {
 
 .template-option {
   padding: 0.55rem 0.4rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: var(--color-text-muted);
+  border: 1px solid var(--ledger-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-muted);
   font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
@@ -252,22 +375,22 @@ textarea:focus {
 }
 
 .template-option:hover {
-  border-color: var(--color-accent);
+  border-color: var(--accent);
 }
 
 .template-option.is-active {
-  background: var(--color-accent-soft);
-  border-color: var(--color-accent);
-  color: var(--color-accent-dark);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-strong);
 }
 
 input[type="color"] {
   width: 2.75rem;
   height: 2.2rem;
   padding: 0.15rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
+  border: 1px solid var(--ledger-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
   cursor: pointer;
 }
 
@@ -288,12 +411,34 @@ input[type="color"] {
   display: grid;
   grid-template-columns: minmax(0, 2.4fr) 0.7fr 0.9fr 0.9fr 1.7rem;
   gap: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--color-text-muted);
-  padding: 0 0 0.4rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+  padding: 0 0 0.5rem;
+  border-bottom: 1px solid var(--ledger-strong);
+  margin-bottom: 0.5rem;
+}
+
+#items-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Wraps each .item-row so a deleted row can collapse its rendered
+   height via grid-template-rows (see file header note on motion). */
+.item-row-wrap {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform-origin: top center;
+}
+
+.item-row-wrap > .item-row {
+  overflow: hidden;
+  min-height: 0;
 }
 
 .item-row {
@@ -301,7 +446,6 @@ input[type="color"] {
   grid-template-columns: minmax(0, 2.4fr) 0.7fr 0.9fr 0.9fr 1.7rem;
   gap: 0.5rem;
   align-items: center;
-  margin-bottom: 0.5rem;
 }
 
 .item-row input {
@@ -310,16 +454,16 @@ input[type="color"] {
 }
 
 .item-row.is-invalid .item-desc {
-  border-color: var(--color-danger);
-  box-shadow: 0 0 0 3px rgba(214, 69, 69, 0.12);
+  border-color: var(--stamp);
+  box-shadow: 0 0 0 3px var(--stamp-soft);
 }
 
 .item-amount {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-align: right;
   padding: 0.5rem 0.4rem;
-  color: var(--color-text);
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -331,10 +475,10 @@ input[type="color"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface);
-  color: var(--color-danger);
+  border: 1px solid var(--ledger-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--stamp);
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
@@ -342,8 +486,8 @@ input[type="color"] {
 }
 
 .delete-row-btn:hover {
-  background: #fdeaea;
-  border-color: var(--color-danger);
+  background: var(--stamp-soft);
+  border-color: var(--stamp);
 }
 
 .delete-row-btn:disabled {
@@ -352,18 +496,45 @@ input[type="color"] {
 }
 
 .delete-row-btn:disabled:hover {
-  background: var(--color-surface);
-  border-color: var(--color-border);
+  background: var(--paper);
+  border-color: var(--ledger-strong);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .item-row-wrap {
+    transition:
+      grid-template-rows var(--dur-row) ease,
+      opacity var(--dur-row) ease,
+      transform var(--dur-row) ease;
+    animation: row-enter var(--dur-row) ease-out both;
+  }
+
+  .item-row-wrap.is-removing {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: scaleY(0.94);
+  }
+
+  @keyframes row-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 /* ==========================================================
    Validation message
    ========================================================== */
 .validation-message {
-  background: #fdeaea;
-  border: 1px solid var(--color-danger);
-  color: #9c2e2e;
-  border-radius: 8px;
+  background: var(--stamp-soft);
+  border: 1px solid var(--stamp);
+  color: var(--stamp-strong);
+  border-radius: var(--radius-sm);
   padding: 0.65rem 0.85rem;
   font-size: 0.85rem;
   font-weight: 600;
@@ -377,50 +548,65 @@ input[type="color"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   padding: 0.6rem 1.1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.btn:active {
-  transform: translateY(1px);
+@media (prefers-reduced-motion: no-preference) {
+  .btn {
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+
+  .btn:not(:disabled):active {
+    transform: translateY(1px);
+  }
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .btn--primary {
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--ink);
+  color: var(--paper);
 }
 
-.btn--primary:hover {
-  background: var(--color-accent-dark);
+.btn--primary:not(:disabled):hover {
+  background: var(--accent-strong);
 }
 
 .btn--secondary {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-dark);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   border-color: transparent;
   width: 100%;
 }
 
 .btn--secondary:hover {
-  background: #dce8ff;
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--accent) 30%);
 }
 
 .btn--ghost {
   background: transparent;
-  color: var(--color-text-muted);
-  border-color: var(--color-border);
+  color: var(--ink-muted);
+  border-color: var(--ledger-strong);
 }
 
 .btn--ghost:hover {
-  background: var(--color-surface);
-  color: var(--color-danger);
-  border-color: var(--color-danger);
+  background: var(--stamp-soft);
+  color: var(--stamp-strong);
+  border-color: var(--stamp);
 }
 
 .btn--small {
@@ -435,19 +621,175 @@ input[type="color"] {
   margin-top: 0.25rem;
 }
 
+/* ---- Download button: idle -> loading -> success -> idle ---- */
+.btn-download {
+  position: relative;
+}
+
+.btn-download__spinner {
+  display: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--paper) 35%, transparent);
+  border-top-color: var(--paper);
+  flex: none;
+}
+
+.btn-download__check {
+  display: none;
+  flex: none;
+  color: var(--paper);
+}
+
+.btn-download[data-state="loading"] .btn-download__spinner {
+  display: block;
+}
+
+.btn-download[data-state="loading"] .btn-download__label,
+.btn-download[data-state="success"] .btn-download__label {
+  /* keep layout stable; text still swaps, icons are the primary cue */
+}
+
+.btn-download[data-state="success"] .btn-download__check {
+  display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn-download__spinner {
+    animation: btn-spin 700ms linear infinite;
+  }
+
+  .btn-download__check {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+
+  .btn-download[data-state="success"] .btn-download__check {
+    animation: btn-check-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+  }
+
+  @keyframes btn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes btn-check-in {
+    from {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/* ---- Mobile "Preview Invoice" floating action button ---- */
+.preview-fab {
+  display: none;
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 65;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 1.4rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+@media (max-width: 960px) {
+  .preview-fab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .preview-fab:hover {
+    transform: translateY(-1px);
+  }
+
+  .preview-fab:active {
+    transform: translateY(1px);
+  }
+}
+
+.drawer-backdrop {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 22, 28, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 55;
+  }
+
+  .drawer-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .drawer-backdrop {
+      transition: opacity 320ms ease;
+    }
+  }
+}
+
 /* ==========================================================
-   Preview sheet — mimics an A4 invoice document
+   Preview sheet — the signature element: a physical A4 page
    ========================================================== */
 .preview-sheet {
   position: relative;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--paper);
+  border: 1px solid var(--ledger-strong);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-paper);
   padding: 2.25rem;
-  max-width: 800px;
+  max-width: 740px;
   margin: 0 auto;
   overflow: hidden;
+  backface-visibility: hidden;
+}
+
+/* Correct A4 proportions (210 x 297mm) on desktop, where the sheet is
+   the hero visual. On mobile it lives in a capped, scrollable drawer,
+   so it sizes to its content instead of forcing extra blank space. */
+@media (min-width: 961px) {
+  .preview-sheet {
+    min-height: 1046px; /* 740px * (297/210) */
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .preview-sheet {
+    animation: paper-settle 650ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  @keyframes paper-settle {
+    from {
+      opacity: 0;
+      transform: rotate(-2.25deg) translateY(16px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: rotate(0deg) translateY(0) scale(1);
+    }
+  }
 }
 
 .preview-logo {
@@ -463,12 +805,13 @@ input[type="color"] {
   justify-content: space-between;
   gap: 1.5rem;
   padding-bottom: 1.25rem;
-  border-bottom: 2px solid var(--invoice-accent, var(--color-accent));
+  border-bottom: 2px solid var(--invoice-accent, var(--accent));
   flex-wrap: wrap;
 }
 
 .preview-business-name {
-  font-size: 1.15rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
   font-weight: 700;
 }
 
@@ -477,27 +820,28 @@ input[type="color"] {
 }
 
 .preview-invoice-title h2 {
-  font-size: 1.6rem;
+  font-family: var(--font-display);
+  font-size: 2rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--invoice-accent, var(--color-accent));
+  letter-spacing: 0.03em;
+  color: var(--invoice-accent, var(--accent));
   margin-bottom: 0.4rem;
 }
 
 .preview-line {
   font-size: 0.88rem;
-  color: var(--color-text-muted);
+  color: var(--ink-muted);
   margin-top: 0.15rem;
 }
 
 .preview-line .label {
-  color: var(--color-text-muted);
+  color: var(--ink-muted);
   font-weight: 600;
   margin-right: 0.25rem;
 }
 
 .preview-strong {
-  color: var(--color-text);
+  color: var(--ink);
   font-weight: 700;
   font-size: 0.95rem;
 }
@@ -518,8 +862,8 @@ input[type="color"] {
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--invoice-accent, var(--color-accent));
+  letter-spacing: 0.07em;
+  color: var(--invoice-accent, var(--accent));
   margin-bottom: 0.4rem;
 }
 
@@ -538,17 +882,18 @@ input[type="color"] {
 
 .preview-table th {
   text-align: left;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  border-bottom: 1px solid var(--color-border);
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--ledger-strong);
   padding: 0.55rem 0.4rem;
 }
 
 .preview-table td {
   padding: 0.6rem 0.4rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--ledger-line);
   vertical-align: top;
   word-break: break-word;
 }
@@ -559,13 +904,14 @@ input[type="color"] {
 }
 
 .preview-table tbody tr:last-child td {
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--ledger-strong);
 }
 
 .preview-table .empty-row td {
-  color: var(--color-text-muted);
+  color: var(--ink-faint);
   font-style: italic;
   text-align: center;
+  font-family: var(--font-sans);
 }
 
 .preview-totals {
@@ -582,18 +928,29 @@ input[type="color"] {
 .totals-row {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   font-size: 0.9rem;
   padding: 0.35rem 0;
-  color: var(--color-text-muted);
+  color: var(--ink-muted);
+}
+
+.totals-row span:first-child {
+  font-family: var(--font-sans);
 }
 
 .totals-row--final {
-  border-top: 2px solid var(--invoice-accent, var(--color-accent));
+  border-top: 2px solid var(--invoice-accent, var(--accent));
   margin-top: 0.35rem;
   padding-top: 0.55rem;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: var(--color-text);
+  color: var(--ink);
+}
+
+.totals-row--final span:first-child {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
 }
 
 .preview-footer {
@@ -601,7 +958,7 @@ input[type="color"] {
   gap: 2rem;
   margin-top: 2rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--ledger-strong);
   flex-wrap: wrap;
 }
 
@@ -624,29 +981,61 @@ input[type="color"] {
   }
 }
 
+/* ---- Template flip: driven by inline styles set in script.js so the
+   two-phase rotation (out, swap content, in) can be sequenced exactly.
+   These base properties just make sure the 3D transform renders
+   correctly whenever script.js sets it. ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .preview-sheet {
+    transform-style: preserve-3d;
+  }
+}
+
 /* ==========================================================
-   Paid stamp — diagonal watermark
+   Paid stamp — diagonal watermark, stamps in like rubber on paper
    ========================================================== */
 .paid-stamp {
   display: none;
   position: absolute;
   top: 42%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(-22deg);
-  border: 4px solid var(--color-success);
-  color: var(--color-success);
+  transform: translate(-50%, -50%) rotate(-20deg);
+  border: 4px solid var(--stamp);
+  color: var(--stamp);
+  font-family: var(--font-display);
   font-size: 2.75rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 0.2rem 1.5rem;
-  opacity: 0.55;
+  opacity: 0.6;
   pointer-events: none;
   z-index: 2;
 }
 
 .paid-stamp.is-visible {
   display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .paid-stamp.is-stamping {
+    animation: stamp-in var(--dur-stamp) cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+  }
+
+  @keyframes stamp-in {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.4) rotate(-6deg);
+    }
+    55% {
+      opacity: 0.6;
+      transform: translate(-50%, -50%) scale(0.94) rotate(-22deg);
+    }
+    100% {
+      opacity: 0.6;
+      transform: translate(-50%, -50%) scale(1) rotate(-20deg);
+    }
+  }
 }
 
 /* ==========================================================
@@ -656,25 +1045,25 @@ input[type="color"] {
 
 /* ---- Classic: black & white, bordered table, traditional ---- */
 .preview-sheet[data-template="classic"] .preview-header {
-  border-bottom: 2px solid var(--color-text);
+  border-bottom: 2px solid var(--ink);
 }
 
 .preview-sheet[data-template="classic"] .preview-table {
-  border: 1px solid var(--color-text);
+  border: 1px solid var(--ink);
 }
 
 .preview-sheet[data-template="classic"] .preview-table th,
 .preview-sheet[data-template="classic"] .preview-table td {
-  border: 1px solid var(--color-border-strong, #333);
+  border: 1px solid var(--ink-muted);
 }
 
 .preview-sheet[data-template="classic"] .preview-table th {
-  color: var(--color-text);
-  background: #f4f4f5;
+  color: var(--ink);
+  background: var(--paper-shade);
 }
 
 .preview-sheet[data-template="classic"] .totals-row--final {
-  border-top: 2px solid var(--color-text);
+  border-top: 2px solid var(--ink);
 }
 
 /* ---- Modern: colored header band, borderless table, whitespace ---- */
@@ -683,7 +1072,7 @@ input[type="color"] {
 }
 
 .preview-sheet[data-template="modern"] .preview-header {
-  background: var(--invoice-accent, var(--color-accent));
+  background: var(--invoice-accent, var(--accent));
   border-bottom: none;
   margin: 0 -2.25rem 1.5rem;
   padding: 2.25rem 2.25rem 1.75rem;
@@ -691,15 +1080,15 @@ input[type="color"] {
 
 .preview-sheet[data-template="modern"] .preview-business-name,
 .preview-sheet[data-template="modern"] .preview-invoice-title h2 {
-  color: #ffffff;
+  color: var(--paper);
 }
 
 .preview-sheet[data-template="modern"] .preview-header .preview-line {
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(252, 251, 248, 0.82);
 }
 
 .preview-sheet[data-template="modern"] .preview-header .preview-line .label {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(252, 251, 248, 0.68);
 }
 
 .preview-sheet[data-template="modern"] .preview-table th,
@@ -708,11 +1097,11 @@ input[type="color"] {
 }
 
 .preview-sheet[data-template="modern"] .preview-table thead tr {
-  border-bottom: 2px solid var(--color-border);
+  border-bottom: 2px solid var(--ledger-strong);
 }
 
 .preview-sheet[data-template="modern"] .preview-table tbody tr:not(:last-child) {
-  border-bottom: 1px solid var(--color-bg);
+  border-bottom: 1px solid var(--paper-shade);
 }
 
 @media (max-width: 640px) {
@@ -728,7 +1117,7 @@ input[type="color"] {
 }
 
 .preview-sheet[data-template="minimal"] .preview-header {
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--ledger-strong);
   padding-bottom: 1.75rem;
 }
 
@@ -737,7 +1126,7 @@ input[type="color"] {
 }
 
 .preview-sheet[data-template="minimal"] .preview-invoice-title h2 {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 600;
 }
 
@@ -748,7 +1137,7 @@ input[type="color"] {
 
 .preview-sheet[data-template="minimal"] .preview-table th,
 .preview-sheet[data-template="minimal"] .preview-table td {
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--ledger-strong);
   padding: 0.75rem 0.4rem;
 }
 
@@ -759,7 +1148,7 @@ input[type="color"] {
 }
 
 .preview-sheet[data-template="minimal"] .totals-row--final {
-  border-top: 1px solid var(--invoice-accent, var(--color-accent));
+  border-top: 1px solid var(--invoice-accent, var(--accent));
 }
 
 @media (max-width: 640px) {
@@ -774,7 +1163,7 @@ input[type="color"] {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(20, 23, 31, 0.5);
+  background: rgba(17, 22, 28, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -787,7 +1176,7 @@ input[type="color"] {
 }
 
 .modal {
-  background: var(--color-surface);
+  background: var(--paper);
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   width: 100%;
@@ -802,11 +1191,12 @@ input[type="color"] {
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--ledger-strong);
 }
 
 .modal-header h2 {
-  font-size: 1.15rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
   font-weight: 700;
 }
 
@@ -815,13 +1205,13 @@ input[type="color"] {
   border: none;
   font-size: 1.5rem;
   line-height: 1;
-  color: var(--color-text-muted);
+  color: var(--ink-muted);
   cursor: pointer;
   padding: 0.2rem 0.4rem;
 }
 
 .modal-close:hover {
-  color: var(--color-danger);
+  color: var(--stamp);
 }
 
 .modal-body {
@@ -831,13 +1221,13 @@ input[type="color"] {
 
 .modal-footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--ledger-strong);
   display: flex;
   justify-content: flex-end;
 }
 
 .history-empty {
-  color: var(--color-text-muted);
+  color: var(--ink-muted);
   font-size: 0.9rem;
   text-align: center;
   padding: 1.5rem 0;
@@ -859,8 +1249,8 @@ input[type="color"] {
   gap: 0.75rem;
   align-items: center;
   padding: 0.6rem 0.7rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border: 1px solid var(--ledger-strong);
+  border-radius: var(--radius-sm);
   font-size: 0.85rem;
 }
 
@@ -915,6 +1305,9 @@ input[type="color"] {
     margin: 0;
     box-shadow: none;
     border: none;
+    min-height: 0;
+    transform: none !important;
+    animation: none !important;
   }
 
   .site-nav,
@@ -923,7 +1316,9 @@ input[type="color"] {
   .form-column,
   .modal-overlay,
   .page-hero,
-  .content-section {
+  .content-section,
+  .preview-fab,
+  .drawer-backdrop {
     display: none !important;
   }
 }

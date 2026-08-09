@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Paper & Ledger design system fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
   <title>Free Online Invoice Generator — No Signup | Invoice Generator</title>
   <meta name="description" content="Create professional invoices for free, right in your browser. Live preview, PDF download, multiple templates. No signup, nothing ever uploaded." />
   <link rel="canonical" href="https://www.invoicegenerator-example.com/" />
@@ -84,7 +89,7 @@
 
   <div class="tool-toolbar">
     <p class="tool-toolbar__subtitle">Create, preview, and download professional invoices — free, no signup.</p>
-    <button type="button" id="history-btn" class="btn btn--ghost">History</button>
+    <button type="button" id="history-btn" class="btn btn--ghost">Invoice History</button>
   </div>
 
   <main class="app-layout" id="invoice-tool">
@@ -189,7 +194,7 @@
           </div>
           <div class="field field--inline">
             <label for="accent-color">Accent color</label>
-            <input type="color" id="accent-color" value="#2f6feb" />
+            <input type="color" id="accent-color" value="#2f6f5e" />
           </div>
         </fieldset>
 
@@ -208,7 +213,7 @@
               <div id="items-body"></div>
             </div>
           </div>
-          <button type="button" id="add-row-btn" class="btn btn--secondary">+ Add Row</button>
+          <button type="button" id="add-row-btn" class="btn btn--secondary">+ Add Line Item</button>
         </fieldset>
 
         <!-- Totals inputs -->
@@ -239,16 +244,20 @@
 
         <!-- Actions -->
         <div class="actions">
-          <button type="button" id="download-pdf-btn" class="btn btn--primary">Download PDF</button>
-          <button type="button" id="duplicate-btn" class="btn btn--ghost">Duplicate</button>
-          <button type="button" id="print-btn" class="btn btn--ghost">Print</button>
-          <button type="button" id="clear-saved-btn" class="btn btn--ghost">Clear Saved Data</button>
+          <button type="button" id="download-pdf-btn" class="btn btn--primary btn-download" data-state="idle">
+            <span class="btn-download__spinner" aria-hidden="true"></span>
+            <svg class="btn-download__check" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15"><path d="M4 12.5l5 5L20 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span class="btn-download__label">Download PDF</span>
+          </button>
+          <button type="button" id="duplicate-btn" class="btn btn--ghost">Duplicate Invoice</button>
+          <button type="button" id="print-btn" class="btn btn--ghost">Print Invoice</button>
+          <button type="button" id="clear-saved-btn" class="btn btn--ghost">Clear Saved Info</button>
         </div>
       </form>
     </section>
 
     <!-- ============ RIGHT COLUMN: PREVIEW ============ -->
-    <section class="preview-column" aria-label="Invoice preview">
+    <section class="preview-column" id="invoice-preview-panel" aria-label="Invoice preview">
       <div class="preview-sheet" id="invoice-preview" data-template="modern">
 
         <div class="paid-stamp" id="paid-stamp">Paid</div>
@@ -329,6 +338,12 @@
 
   </main>
 
+  <!-- Mobile-only: opens the preview sheet as a bottom drawer -->
+  <button type="button" id="preview-fab" class="preview-fab" aria-expanded="false" aria-controls="invoice-preview-panel">
+    <span class="preview-fab__label">Preview Invoice</span>
+  </button>
+  <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+
   <!-- ============ HISTORY PANEL (modal overlay) ============ -->
   <div class="modal-overlay" id="history-overlay" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="history-title">
@@ -337,7 +352,7 @@
         <button type="button" id="close-history-btn" class="modal-close" aria-label="Close history panel">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="history-empty" id="history-empty">No saved invoices yet. Downloading a PDF adds it here.</p>
+        <p class="history-empty" id="history-empty">Nothing here yet — download an invoice and it lands in this list.</p>
         <div class="history-list" id="history-list"></div>
       </div>
       <div class="modal-footer">
