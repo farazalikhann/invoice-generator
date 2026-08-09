@@ -48,5 +48,44 @@ window.INVOICE_TEMPLATES = {
       { description: "Follow-up written recommendations report", qty: 1, rate: 400 }
     ],
     paymentTerms: "Net 30. Late payments accrue 1.5% interest per month."
+  },
+
+  "graphic-designer-invoice": {
+    slug: "graphic-designer-invoice",
+    pageTitle: "Free Graphic Designer Invoice Template | Invoice Generator",
+    metaDescription: "A free graphic designer invoice template for logo design, brand identity, and social media work. Fill it in, preview it live, and download a PDF.",
+    lineItems: [
+      { description: "Logo design concepts (3 rounds)", qty: 1, rate: 15000 },
+      { description: "Brand style guide", qty: 1, rate: 8000 },
+      { description: "Social media templates", qty: 5, rate: 1200 },
+      { description: "Additional revision round", qty: 1, rate: 2500 }
+    ],
+    paymentTerms: "50% deposit due at project kickoff, remaining balance due upon final delivery."
+  },
+
+  "web-developer-invoice": {
+    slug: "web-developer-invoice",
+    pageTitle: "Free Web Developer Invoice Template | Invoice Generator",
+    metaDescription: "A free web developer invoice template for frontend projects, hosting retainers, and support hours. Fill it in, preview it live, and download a PDF.",
+    lineItems: [
+      { description: "Frontend development (hours)", qty: 40, rate: 1500 },
+      { description: "Responsive design implementation", qty: 1, rate: 12000 },
+      { description: "Monthly hosting and maintenance", qty: 1, rate: 3000 },
+      { description: "Bug fixes and support (hours)", qty: 5, rate: 1200 }
+    ],
+    paymentTerms: "Net 15. Hosting and maintenance retainer billed monthly in advance."
+  },
+
+  "contractor-invoice": {
+    slug: "contractor-invoice",
+    pageTitle: "Free Contractor Invoice Template | Invoice Generator",
+    metaDescription: "A free contractor invoice template for construction and trades — labor, materials, site prep, and change orders. Fill it in, download a PDF.",
+    lineItems: [
+      { description: "Labor (days)", qty: 10, rate: 2500 },
+      { description: "Materials and supplies", qty: 1, rate: 45000 },
+      { description: "Site preparation", qty: 1, rate: 8000 },
+      { description: "Change order: extra electrical work", qty: 1, rate: 6500 }
+    ],
+    paymentTerms: "30% deposit due before work begins, progress payments per milestone, balance due on completion."
   }
 };

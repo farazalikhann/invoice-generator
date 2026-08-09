@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Paper & Ledger design system fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <title>Free Contractor Invoice Template | Invoice Generator</title>
+  <meta name="description" content="A free contractor invoice template for construction and trades — labor, materials, site prep, and change orders. Fill it in, download a PDF." />
+  <link rel="canonical" href="https://www.invoicegenerator-example.com/templates/contractor-invoice/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Invoice Generator" />
+  <meta property="og:title" content="Free Contractor Invoice Template" />
+  <meta property="og:description" content="A free contractor invoice template for construction and trades — labor, materials, site prep, and change orders." />
+  <meta property="og:url" content="https://www.invoicegenerator-example.com/templates/contractor-invoice/" />
+  <meta name="twitter:card" content="summary" />
+
+  <link rel="stylesheet" href="../../assets/css/site.css" />
+  <link rel="stylesheet" href="../../style.css" />
+  <!-- jsPDF (CDN) used only for generating the downloadable PDF. Loaded
+       before script.js (both deferred, executed in document order) so
+       jsPDF is ready by the time script.js's init() runs. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script>window.INVOICE_TEMPLATE_SLUG = "contractor-invoice";</script>
+  <script src="../../assets/js/template-config.js" defer></script>
+  <script src="../../script.js" defer></script>
+  <script src="../../assets/js/site.js" defer></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Contractor Invoice Template",
+    "url": "https://www.invoicegenerator-example.com/templates/contractor-invoice/",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Any (runs in any modern web browser)",
+    "description": "A free contractor invoice template for construction and trades — labor, materials, site prep, and change orders. Fill it in, download a PDF.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How should I bill for materials versus labor?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Keep them as separate line items. Materials are often marked up and should be backed by receipts you can produce if asked; labor is usually billed by the day or hour and should reflect the crew and time actually on site. Mixing the two into one number makes both harder to justify."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What's a change order and how do I invoice for one?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A change order is work added after the original scope was agreed — for example, extra electrical work discovered mid-project. List it as its own clearly labeled line item, ideally referencing the change order number from your paperwork, rather than folding it into the original quoted price."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Should I ask for payment upfront on a construction job?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A deposit before work begins is standard practice, especially for jobs requiring you to purchase materials in advance. Larger jobs typically add progress payments tied to milestones, with a final payment due on completion — spreading the risk instead of carrying the whole project cost yourself."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <header class="site-nav">
+    <div class="site-nav__inner">
+      <a href="../../" class="site-nav__brand">
+        <svg class="site-nav__logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          <path d="M14 2v5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          <path d="M8.5 12.5h7M8.5 15.5h7M8.5 9.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <span>Invoice Generator</span>
+      </a>
+      <button type="button" class="site-nav__toggle" id="site-nav-toggle" aria-expanded="false" aria-controls="site-nav-links">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Menu</span>
+      </button>
+      <nav aria-label="Primary" id="site-nav-links" class="site-nav__nav">
+        <ul class="site-nav__links">
+          <li><a href="../../">Invoice Generator</a></li>
+          <li><a href="../../templates/" class="is-active" aria-current="page">Templates</a></li>
+          <li><a href="../../blog/">Blog</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-hero">
+    <div class="page-hero__inner">
+      <p class="breadcrumbs"><a href="../../">Invoice Generator</a> / <a href="../">Templates</a> / Contractor Invoice</p>
+      <h1>Contractor Invoice Template</h1>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="content-section__inner content-section__inner--narrow prose">
+      <p>A construction or trades invoice has to hold up to more scrutiny than most — clients want to see exactly what they paid for labor versus materials, and any work added after the original quote needs to be clearly separated from what was agreed at the start. Materials often carry a markup and should be backed by receipts you can produce if asked; labor is usually billed by the day or hour and should reflect the crew and time actually on site; and site preparation, permits, or disposal fees deserve their own line rather than getting folded into "labor." Change orders — extra work requested mid-project, like additional electrical runs that weren't in the original scope — are one of the most common sources of payment disputes in this industry, and the fix is simple: list them as their own clearly labeled line item, ideally referencing the change order number from your paperwork. The template below is pre-filled with a typical job: labor days, materials, site prep, and a change order for extra electrical work. Adjust it to match your own job and export a PDF ready for the client's records.</p>
+    </div>
+  </section>
+
+  <div class="tool-toolbar">
+    <p class="tool-toolbar__subtitle">Create, preview, and download professional invoices — free, no signup.</p>
+    <button type="button" id="history-btn" class="btn btn--ghost">Invoice History</button>
+  </div>
+
+  <main class="app-layout" id="invoice-tool">
+
+    <!-- ============ LEFT COLUMN: FORM ============ -->
+    <section class="form-column" aria-label="Invoice form">
+      <form id="invoice-form">
+
+        <!-- From -->
+        <fieldset class="card">
+          <legend>From</legend>
+          <div class="field">
+            <label for="from-name">Business name</label>
+            <input type="text" id="from-name" placeholder="Your Business Name" autocomplete="organization" />
+          </div>
+          <div class="field">
+            <label for="from-email">Email</label>
+            <input type="email" id="from-email" placeholder="you@business.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="from-phone">Phone</label>
+            <input type="tel" id="from-phone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+          </div>
+          <div class="field">
+            <label for="from-address">Address</label>
+            <textarea id="from-address" rows="2" placeholder="Street, City, State, ZIP"></textarea>
+          </div>
+          <div class="field">
+            <label for="logo-upload">Logo</label>
+            <div class="logo-upload-row">
+              <input type="file" id="logo-upload" accept="image/*" class="logo-input" />
+              <button type="button" id="remove-logo-btn" class="btn btn--ghost btn--small">Remove Logo</button>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Bill To -->
+        <fieldset class="card">
+          <legend>Bill To</legend>
+          <div class="field">
+            <label for="to-name">Client name</label>
+            <input type="text" id="to-name" placeholder="Client Name" />
+          </div>
+          <div class="field">
+            <label for="to-email">Email</label>
+            <input type="email" id="to-email" placeholder="client@company.com" />
+          </div>
+          <div class="field">
+            <label for="to-address">Address</label>
+            <textarea id="to-address" rows="2" placeholder="Street, City, State, ZIP"></textarea>
+          </div>
+        </fieldset>
+
+        <!-- Invoice details -->
+        <fieldset class="card">
+          <legend>Invoice Details</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="invoice-number">Invoice number</label>
+              <input type="text" id="invoice-number" value="INV-001" />
+            </div>
+            <div class="field">
+              <label for="currency">Currency</label>
+              <select id="currency">
+                <option value="USD" selected>USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="INR">INR (₹)</option>
+                <option value="CAD">CAD ($)</option>
+                <option value="AUD">AUD ($)</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="issue-date">Issue date</label>
+              <input type="date" id="issue-date" />
+            </div>
+            <div class="field">
+              <label for="due-date">Due date</label>
+              <input type="date" id="due-date" />
+            </div>
+          </div>
+          <div class="field field--checkbox">
+            <label class="checkbox-label">
+              <input type="checkbox" id="mark-paid" />
+              <span>Mark invoice as paid</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Appearance -->
+        <fieldset class="card">
+          <legend>Appearance</legend>
+          <div class="field">
+            <label id="template-switcher-label">Template</label>
+            <div class="template-switcher" id="template-switcher" role="group" aria-labelledby="template-switcher-label">
+              <button type="button" class="template-option" data-template="classic">Classic</button>
+              <button type="button" class="template-option" data-template="modern">Modern</button>
+              <button type="button" class="template-option" data-template="minimal">Minimal</button>
+            </div>
+          </div>
+          <div class="field field--inline">
+            <label for="accent-color">Accent color</label>
+            <input type="color" id="accent-color" value="#2f6f5e" />
+          </div>
+        </fieldset>
+
+        <!-- Line items -->
+        <fieldset class="card">
+          <legend>Line Items</legend>
+          <div class="items-scroll">
+            <div class="items-table">
+              <div class="items-head">
+                <span>Description</span>
+                <span>Qty</span>
+                <span>Rate</span>
+                <span>Amount</span>
+                <span class="items-head__action"></span>
+              </div>
+              <div id="items-body"></div>
+            </div>
+          </div>
+          <button type="button" id="add-row-btn" class="btn btn--secondary">+ Add Line Item</button>
+        </fieldset>
+
+        <!-- Totals inputs -->
+        <fieldset class="card">
+          <legend>Adjustments</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="tax-percent">Tax (%)</label>
+              <input type="number" id="tax-percent" min="0" step="0.01" value="0" />
+            </div>
+            <div class="field">
+              <label for="discount-percent">Discount (%)</label>
+              <input type="number" id="discount-percent" min="0" step="0.01" value="0" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="notes">Notes</label>
+            <textarea id="notes" rows="2" placeholder="Thank you for your business!"></textarea>
+          </div>
+          <div class="field">
+            <label for="payment-terms">Payment terms</label>
+            <input type="text" id="payment-terms" placeholder="e.g. Due within 15 days" />
+          </div>
+        </fieldset>
+
+        <!-- Validation feedback -->
+        <p class="validation-message" id="validation-message" role="alert" hidden></p>
+
+        <!-- Actions -->
+        <div class="actions">
+          <button type="button" id="download-pdf-btn" class="btn btn--primary btn-download" data-state="idle">
+            <span class="btn-download__spinner" aria-hidden="true"></span>
+            <svg class="btn-download__check" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15"><path d="M4 12.5l5 5L20 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span class="btn-download__label">Download PDF</span>
+          </button>
+          <button type="button" id="duplicate-btn" class="btn btn--ghost">Duplicate Invoice</button>
+          <button type="button" id="print-btn" class="btn btn--ghost">Print Invoice</button>
+          <button type="button" id="clear-saved-btn" class="btn btn--ghost">Clear Saved Info</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ RIGHT COLUMN: PREVIEW ============ -->
+    <section class="preview-column" id="invoice-preview-panel" aria-label="Invoice preview">
+      <div class="preview-sheet" id="invoice-preview" data-template="modern">
+
+        <div class="paid-stamp" id="paid-stamp">Paid</div>
+
+        <div class="preview-header">
+          <div class="preview-header__from">
+            <img id="prev-logo" class="preview-logo" alt="Business logo" />
+            <p class="preview-business-name" id="prev-from-name">Your Business Name</p>
+            <p class="preview-line" id="prev-from-email"></p>
+            <p class="preview-line" id="prev-from-phone"></p>
+            <p class="preview-line preview-address" id="prev-from-address"></p>
+          </div>
+          <div class="preview-invoice-title">
+            <h2>INVOICE</h2>
+            <p class="preview-line"><span class="label">No.</span> <span id="prev-invoice-number">INV-001</span></p>
+            <p class="preview-line"><span class="label">Issued</span> <span id="prev-issue-date">—</span></p>
+            <p class="preview-line"><span class="label">Due</span> <span id="prev-due-date">—</span></p>
+          </div>
+        </div>
+
+        <div class="preview-parties">
+          <div>
+            <p class="preview-section-label">Bill To</p>
+            <p class="preview-line preview-strong" id="prev-to-name">Client Name</p>
+            <p class="preview-line" id="prev-to-email"></p>
+            <p class="preview-line preview-address" id="prev-to-address"></p>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th class="col-desc">Description</th>
+                <th class="col-num">Qty</th>
+                <th class="col-num">Rate</th>
+                <th class="col-num">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="prev-items-body"></tbody>
+          </table>
+        </div>
+
+        <div class="preview-totals">
+          <div class="totals-box">
+            <div class="totals-row">
+              <span>Subtotal</span>
+              <span id="prev-subtotal">0.00</span>
+            </div>
+            <div class="totals-row">
+              <span>Discount</span>
+              <span id="prev-discount">0.00</span>
+            </div>
+            <div class="totals-row">
+              <span>Tax</span>
+              <span id="prev-tax">0.00</span>
+            </div>
+            <div class="totals-row totals-row--final">
+              <span>Total</span>
+              <span id="prev-total">0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-footer">
+          <div class="preview-footer__block">
+            <p class="preview-section-label">Notes</p>
+            <p class="preview-line preview-address" id="prev-notes"></p>
+          </div>
+          <div class="preview-footer__block">
+            <p class="preview-section-label">Payment Terms</p>
+            <p class="preview-line preview-address" id="prev-payment-terms"></p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Mobile-only: opens the preview sheet as a bottom drawer -->
+  <button type="button" id="preview-fab" class="preview-fab" aria-expanded="false" aria-controls="invoice-preview-panel">
+    <span class="preview-fab__label">Preview Invoice</span>
+  </button>
+  <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+
+  <!-- ============ HISTORY PANEL (modal overlay) ============ -->
+  <div class="modal-overlay" id="history-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="history-title">
+      <div class="modal-header">
+        <h2 id="history-title">Invoice History</h2>
+        <button type="button" id="close-history-btn" class="modal-close" aria-label="Close history panel">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="history-empty" id="history-empty">Nothing here yet — download an invoice and it lands in this list.</p>
+        <div class="history-list" id="history-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="clear-history-btn" class="btn btn--ghost">Clear All History</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="content-section content-section--muted">
+    <div class="content-section__inner">
+      <h2>What to include on a contractor invoice</h2>
+      <ul class="checklist">
+        <li>Job site address and project reference</li>
+        <li>Labor days or hours, and the day or hourly rate</li>
+        <li>Materials and supplies, with receipts available on request</li>
+        <li>Site preparation, permits, or disposal fees</li>
+        <li>Change orders, listed separately from the original scope</li>
+        <li>Payment schedule (deposit, progress payments, final payment)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="content-section__inner">
+      <h2>Contractor invoice FAQ</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <p class="faq-item__question">How should I bill for materials versus labor?</p>
+          <p class="faq-item__answer">Keep them as separate line items. Materials are often marked up and should be backed by receipts you can produce if asked; labor is usually billed by the day or hour and should reflect the crew and time actually on site. Mixing the two into one number makes both harder to justify.</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-item__question">What's a change order and how do I invoice for one?</p>
+          <p class="faq-item__answer">A change order is work added after the original scope was agreed — for example, extra electrical work discovered mid-project. List it as its own clearly labeled line item, ideally referencing the change order number from your paperwork, rather than folding it into the original quoted price.</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-item__question">Should I ask for payment upfront on a construction job?</p>
+          <p class="faq-item__answer">A deposit before work begins is standard practice, especially for jobs requiring you to purchase materials in advance. Larger jobs typically add progress payments tied to milestones, with a final payment due on completion — spreading the risk instead of carrying the whole project cost yourself.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section content-section--muted">
+    <div class="content-section__inner">
+      <h2>Related templates</h2>
+      <div class="related-grid">
+        <a class="related-card" href="../consulting-invoice/">
+          <span class="related-card__label">Consulting Invoice</span>
+          <span class="related-card__hint">Milestone-based project billing.</span>
+        </a>
+        <a class="related-card" href="../electrician-invoice/">
+          <span class="related-card__label">Electrician Invoice</span>
+          <span class="related-card__hint">Service calls, parts, and code compliance work.</span>
+        </a>
+        <a class="related-card" href="../plumber-invoice/">
+          <span class="related-card__label">Plumber Invoice</span>
+          <span class="related-card__hint">Service calls, fixtures, and emergency callouts.</span>
+        </a>
+        <a class="related-card" href="../landscaper-invoice/">
+          <span class="related-card__label">Landscaper Invoice</span>
+          <span class="related-card__hint">Seasonal contracts and one-off project work.</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <span class="site-footer__title">Invoice Generator</span>
+        <p class="site-footer__tagline">Free, private, and runs entirely in your browser. Nothing you type is ever uploaded anywhere.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul class="site-footer__links">
+          <li><a href="../../about/">About</a></li>
+          <li><a href="../../privacy/">Privacy Policy</a></li>
+          <li><a href="../../terms/">Terms of Service</a></li>
+          <li><a href="../../contact/">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="site-footer__bottom">
+      <p>&copy; <span id="footer-year">2026</span> Invoice Generator. All rights reserved.</p>
+    </div>
+    <script>document.getElementById("footer-year").textContent = new Date().getFullYear();</script>
+  </footer>
+
+</body>
+</html>
