@@ -15,13 +15,16 @@
   <meta property="og:url" content="https://www.invoicegenerator-example.com/templates/freelance-writer-invoice/" />
   <meta name="twitter:card" content="summary" />
 
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/style.css" />
-  <!-- jsPDF (CDN) used only for generating the downloadable PDF -->
+  <link rel="stylesheet" href="../../assets/css/site.css" />
+  <link rel="stylesheet" href="../../style.css" />
+  <!-- jsPDF (CDN) used only for generating the downloadable PDF. Loaded
+       before script.js (both deferred, executed in document order) so
+       jsPDF is ready by the time script.js's init() runs. -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script>window.INVOICE_TEMPLATE_SLUG = "freelance-writer-invoice";</script>
-  <script src="/assets/js/template-config.js" defer></script>
-  <script src="/script.js" defer></script>
+  <script src="../../assets/js/template-config.js" defer></script>
+  <script src="../../script.js" defer></script>
+  <script src="../../assets/js/site.js" defer></script>
 
   <script type="application/ld+json">
   {
@@ -75,12 +78,33 @@
 </head>
 <body>
 
-  <script src="/assets/js/include.js"></script>
-  <script>writeIncludeHeader();</script>
+  <header class="site-nav">
+    <div class="site-nav__inner">
+      <a href="../../" class="site-nav__brand">
+        <svg class="site-nav__logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          <path d="M14 2v5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          <path d="M8.5 12.5h7M8.5 15.5h7M8.5 9.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <span>Invoice Generator</span>
+      </a>
+      <button type="button" class="site-nav__toggle" id="site-nav-toggle" aria-expanded="false" aria-controls="site-nav-links">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Menu</span>
+      </button>
+      <nav aria-label="Primary" id="site-nav-links" class="site-nav__nav">
+        <ul class="site-nav__links">
+          <li><a href="../../">Invoice Generator</a></li>
+          <li><a href="../../templates/" class="is-active" aria-current="page">Templates</a></li>
+          <li><a href="../../blog/">Blog</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
   <section class="page-hero">
     <div class="page-hero__inner">
-      <p class="breadcrumbs"><a href="/">Invoice Generator</a> / <a href="/templates/">Templates</a> / Freelance Writer Invoice</p>
+      <p class="breadcrumbs"><a href="../../">Invoice Generator</a> / <a href="../">Templates</a> / Freelance Writer Invoice</p>
       <h1>Freelance Writer Invoice Template</h1>
     </div>
   </section>
@@ -92,7 +116,270 @@
     </div>
   </section>
 
-  <script>writeIncludeTool();</script>
+  <div class="tool-toolbar">
+    <p class="tool-toolbar__subtitle">Create, preview, and download professional invoices — free, no signup.</p>
+    <button type="button" id="history-btn" class="btn btn--ghost">History</button>
+  </div>
+
+  <main class="app-layout" id="invoice-tool">
+
+    <!-- ============ LEFT COLUMN: FORM ============ -->
+    <section class="form-column" aria-label="Invoice form">
+      <form id="invoice-form">
+
+        <!-- From -->
+        <fieldset class="card">
+          <legend>From</legend>
+          <div class="field">
+            <label for="from-name">Business name</label>
+            <input type="text" id="from-name" placeholder="Your Business Name" autocomplete="organization" />
+          </div>
+          <div class="field">
+            <label for="from-email">Email</label>
+            <input type="email" id="from-email" placeholder="you@business.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="from-phone">Phone</label>
+            <input type="tel" id="from-phone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+          </div>
+          <div class="field">
+            <label for="from-address">Address</label>
+            <textarea id="from-address" rows="2" placeholder="Street, City, State, ZIP"></textarea>
+          </div>
+          <div class="field">
+            <label for="logo-upload">Logo</label>
+            <div class="logo-upload-row">
+              <input type="file" id="logo-upload" accept="image/*" class="logo-input" />
+              <button type="button" id="remove-logo-btn" class="btn btn--ghost btn--small">Remove Logo</button>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Bill To -->
+        <fieldset class="card">
+          <legend>Bill To</legend>
+          <div class="field">
+            <label for="to-name">Client name</label>
+            <input type="text" id="to-name" placeholder="Client Name" />
+          </div>
+          <div class="field">
+            <label for="to-email">Email</label>
+            <input type="email" id="to-email" placeholder="client@company.com" />
+          </div>
+          <div class="field">
+            <label for="to-address">Address</label>
+            <textarea id="to-address" rows="2" placeholder="Street, City, State, ZIP"></textarea>
+          </div>
+        </fieldset>
+
+        <!-- Invoice details -->
+        <fieldset class="card">
+          <legend>Invoice Details</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="invoice-number">Invoice number</label>
+              <input type="text" id="invoice-number" value="INV-001" />
+            </div>
+            <div class="field">
+              <label for="currency">Currency</label>
+              <select id="currency">
+                <option value="USD" selected>USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="INR">INR (₹)</option>
+                <option value="CAD">CAD ($)</option>
+                <option value="AUD">AUD ($)</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="issue-date">Issue date</label>
+              <input type="date" id="issue-date" />
+            </div>
+            <div class="field">
+              <label for="due-date">Due date</label>
+              <input type="date" id="due-date" />
+            </div>
+          </div>
+          <div class="field field--checkbox">
+            <label class="checkbox-label">
+              <input type="checkbox" id="mark-paid" />
+              <span>Mark invoice as paid</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Appearance -->
+        <fieldset class="card">
+          <legend>Appearance</legend>
+          <div class="field">
+            <label id="template-switcher-label">Template</label>
+            <div class="template-switcher" id="template-switcher" role="group" aria-labelledby="template-switcher-label">
+              <button type="button" class="template-option" data-template="classic">Classic</button>
+              <button type="button" class="template-option" data-template="modern">Modern</button>
+              <button type="button" class="template-option" data-template="minimal">Minimal</button>
+            </div>
+          </div>
+          <div class="field field--inline">
+            <label for="accent-color">Accent color</label>
+            <input type="color" id="accent-color" value="#2f6feb" />
+          </div>
+        </fieldset>
+
+        <!-- Line items -->
+        <fieldset class="card">
+          <legend>Line Items</legend>
+          <div class="items-scroll">
+            <div class="items-table">
+              <div class="items-head">
+                <span>Description</span>
+                <span>Qty</span>
+                <span>Rate</span>
+                <span>Amount</span>
+                <span class="items-head__action"></span>
+              </div>
+              <div id="items-body"></div>
+            </div>
+          </div>
+          <button type="button" id="add-row-btn" class="btn btn--secondary">+ Add Row</button>
+        </fieldset>
+
+        <!-- Totals inputs -->
+        <fieldset class="card">
+          <legend>Adjustments</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="tax-percent">Tax (%)</label>
+              <input type="number" id="tax-percent" min="0" step="0.01" value="0" />
+            </div>
+            <div class="field">
+              <label for="discount-percent">Discount (%)</label>
+              <input type="number" id="discount-percent" min="0" step="0.01" value="0" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="notes">Notes</label>
+            <textarea id="notes" rows="2" placeholder="Thank you for your business!"></textarea>
+          </div>
+          <div class="field">
+            <label for="payment-terms">Payment terms</label>
+            <input type="text" id="payment-terms" placeholder="e.g. Due within 15 days" />
+          </div>
+        </fieldset>
+
+        <!-- Validation feedback -->
+        <p class="validation-message" id="validation-message" role="alert" hidden></p>
+
+        <!-- Actions -->
+        <div class="actions">
+          <button type="button" id="download-pdf-btn" class="btn btn--primary">Download PDF</button>
+          <button type="button" id="duplicate-btn" class="btn btn--ghost">Duplicate</button>
+          <button type="button" id="print-btn" class="btn btn--ghost">Print</button>
+          <button type="button" id="clear-saved-btn" class="btn btn--ghost">Clear Saved Data</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ RIGHT COLUMN: PREVIEW ============ -->
+    <section class="preview-column" aria-label="Invoice preview">
+      <div class="preview-sheet" id="invoice-preview" data-template="modern">
+
+        <div class="paid-stamp" id="paid-stamp">Paid</div>
+
+        <div class="preview-header">
+          <div class="preview-header__from">
+            <img id="prev-logo" class="preview-logo" alt="Business logo" />
+            <p class="preview-business-name" id="prev-from-name">Your Business Name</p>
+            <p class="preview-line" id="prev-from-email"></p>
+            <p class="preview-line" id="prev-from-phone"></p>
+            <p class="preview-line preview-address" id="prev-from-address"></p>
+          </div>
+          <div class="preview-invoice-title">
+            <h2>INVOICE</h2>
+            <p class="preview-line"><span class="label">No.</span> <span id="prev-invoice-number">INV-001</span></p>
+            <p class="preview-line"><span class="label">Issued</span> <span id="prev-issue-date">—</span></p>
+            <p class="preview-line"><span class="label">Due</span> <span id="prev-due-date">—</span></p>
+          </div>
+        </div>
+
+        <div class="preview-parties">
+          <div>
+            <p class="preview-section-label">Bill To</p>
+            <p class="preview-line preview-strong" id="prev-to-name">Client Name</p>
+            <p class="preview-line" id="prev-to-email"></p>
+            <p class="preview-line preview-address" id="prev-to-address"></p>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th class="col-desc">Description</th>
+                <th class="col-num">Qty</th>
+                <th class="col-num">Rate</th>
+                <th class="col-num">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="prev-items-body"></tbody>
+          </table>
+        </div>
+
+        <div class="preview-totals">
+          <div class="totals-box">
+            <div class="totals-row">
+              <span>Subtotal</span>
+              <span id="prev-subtotal">0.00</span>
+            </div>
+            <div class="totals-row">
+              <span>Discount</span>
+              <span id="prev-discount">0.00</span>
+            </div>
+            <div class="totals-row">
+              <span>Tax</span>
+              <span id="prev-tax">0.00</span>
+            </div>
+            <div class="totals-row totals-row--final">
+              <span>Total</span>
+              <span id="prev-total">0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-footer">
+          <div class="preview-footer__block">
+            <p class="preview-section-label">Notes</p>
+            <p class="preview-line preview-address" id="prev-notes"></p>
+          </div>
+          <div class="preview-footer__block">
+            <p class="preview-section-label">Payment Terms</p>
+            <p class="preview-line preview-address" id="prev-payment-terms"></p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ HISTORY PANEL (modal overlay) ============ -->
+  <div class="modal-overlay" id="history-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="history-title">
+      <div class="modal-header">
+        <h2 id="history-title">Invoice History</h2>
+        <button type="button" id="close-history-btn" class="modal-close" aria-label="Close history panel">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="history-empty" id="history-empty">No saved invoices yet. Downloading a PDF adds it here.</p>
+        <div class="history-list" id="history-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="clear-history-btn" class="btn btn--ghost">Clear All History</button>
+      </div>
+    </div>
+  </div>
+
 
   <section class="content-section content-section--muted">
     <div class="content-section__inner">
@@ -132,19 +419,19 @@
     <div class="content-section__inner">
       <h2>Related templates</h2>
       <div class="related-grid">
-        <a class="related-card" href="/templates/consulting-invoice/">
+        <a class="related-card" href="../consulting-invoice/">
           <span class="related-card__label">Consulting Invoice</span>
           <span class="related-card__hint">Hourly advisory work and workshops.</span>
         </a>
-        <a class="related-card" href="/templates/photography-invoice/">
+        <a class="related-card" href="../photography-invoice/">
           <span class="related-card__label">Photography Invoice</span>
           <span class="related-card__hint">Session fees, editing, and image delivery.</span>
         </a>
-        <a class="related-card" href="/templates/marketing-agency-invoice/">
+        <a class="related-card" href="../marketing-agency-invoice/">
           <span class="related-card__label">Marketing Agency Invoice</span>
           <span class="related-card__hint">Retainers, campaigns, and ad spend pass-through.</span>
         </a>
-        <a class="related-card" href="/templates/web-developer-invoice/">
+        <a class="related-card" href="../web-developer-invoice/">
           <span class="related-card__label">Web Developer Invoice</span>
           <span class="related-card__hint">Project milestones and maintenance retainers.</span>
         </a>
@@ -152,7 +439,26 @@
     </div>
   </section>
 
-  <script>writeIncludeFooter();</script>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <span class="site-footer__title">Invoice Generator</span>
+        <p class="site-footer__tagline">Free, private, and runs entirely in your browser. Nothing you type is ever uploaded anywhere.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul class="site-footer__links">
+          <li><a href="../../about/">About</a></li>
+          <li><a href="../../privacy/">Privacy Policy</a></li>
+          <li><a href="../../terms/">Terms of Service</a></li>
+          <li><a href="../../contact/">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="site-footer__bottom">
+      <p>&copy; <span id="footer-year">2026</span> Invoice Generator. All rights reserved.</p>
+    </div>
+    <script>document.getElementById("footer-year").textContent = new Date().getFullYear();</script>
+  </footer>
 
 </body>
 </html>

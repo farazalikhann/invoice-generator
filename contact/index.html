@@ -15,12 +15,34 @@
   <meta property="og:url" content="https://www.invoicegenerator-example.com/contact/" />
   <meta name="twitter:card" content="summary" />
 
-  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/site.js" defer></script>
 </head>
 <body>
 
-  <script src="/assets/js/include.js"></script>
-  <script>writeIncludeHeader();</script>
+  <header class="site-nav">
+    <div class="site-nav__inner">
+      <a href="../" class="site-nav__brand">
+        <svg class="site-nav__logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          <path d="M14 2v5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          <path d="M8.5 12.5h7M8.5 15.5h7M8.5 9.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <span>Invoice Generator</span>
+      </a>
+      <button type="button" class="site-nav__toggle" id="site-nav-toggle" aria-expanded="false" aria-controls="site-nav-links">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Menu</span>
+      </button>
+      <nav aria-label="Primary" id="site-nav-links" class="site-nav__nav">
+        <ul class="site-nav__links">
+          <li><a href="../">Invoice Generator</a></li>
+          <li><a href="../templates/">Templates</a></li>
+          <li><a href="../blog/">Blog</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
   <section class="page-hero">
     <div class="page-hero__inner">
@@ -38,9 +60,9 @@
       <h2>Before you write in</h2>
       <p>A few common questions are already answered elsewhere:</p>
       <ul>
-        <li>Wondering where your data is stored? See the <a href="/privacy/">Privacy Policy</a>.</li>
-        <li>Looking for a template for your profession? Browse <a href="/templates/">Templates</a>.</li>
-        <li>New to invoicing in general? Start with <a href="/blog/how-to-write-an-invoice/">How to Write an Invoice</a>.</li>
+        <li>Wondering where your data is stored? See the <a href="../privacy/">Privacy Policy</a>.</li>
+        <li>Looking for a template for your profession? Browse <a href="../templates/">Templates</a>.</li>
+        <li>New to invoicing in general? Start with <a href="../blog/how-to-write-an-invoice/">How to Write an Invoice</a>.</li>
       </ul>
 
       <h2>Bug reports</h2>
@@ -49,7 +71,26 @@
     </div>
   </section>
 
-  <script>writeIncludeFooter();</script>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <span class="site-footer__title">Invoice Generator</span>
+        <p class="site-footer__tagline">Free, private, and runs entirely in your browser. Nothing you type is ever uploaded anywhere.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul class="site-footer__links">
+          <li><a href="../about/">About</a></li>
+          <li><a href="../privacy/">Privacy Policy</a></li>
+          <li><a href="../terms/">Terms of Service</a></li>
+          <li><a href="../contact/">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="site-footer__bottom">
+      <p>&copy; <span id="footer-year">2026</span> Invoice Generator. All rights reserved.</p>
+    </div>
+    <script>document.getElementById("footer-year").textContent = new Date().getFullYear();</script>
+  </footer>
 
 </body>
 </html>
