@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K1QSGX4Y9T"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-K1QSGX4Y9T');
+  </script>
+
   <!-- Paper & Ledger design system fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -60,7 +70,7 @@
     <div class="content-section__inner content-section__inner--narrow prose">
 
       <h2>The short version</h2>
-      <p>Everything you type into the invoice tool — your business details, client details, line items, and any logo you upload — stays on your device. It is never transmitted to us or to any third party. There is no server behind this tool that receives or stores your invoice data.</p>
+      <p>Everything you type into the invoice tool — your business details, client details, line items, and any logo you upload — stays on your device. It is never transmitted to us or to any third party. There is no server behind this tool that receives or stores your invoice data. Separately, this site uses Google Analytics to see aggregate traffic patterns, like how many people visit and which pages are popular — see the <strong>Analytics</strong> section below. It never sees anything you type into the invoice form.</p>
 
       <h2>What is stored, and where</h2>
       <p>The tool uses your browser's <strong>local storage</strong> to remember three things between visits, so you don't have to retype them:</p>
@@ -74,13 +84,18 @@
       <h2>What we don't do</h2>
       <ul>
         <li>We don't require an account, email address, or any personal information to use the tool.</li>
-        <li>We don't use tracking or advertising cookies.</li>
-        <li>We don't run analytics scripts that profile individual visitors.</li>
+        <li>We don't let analytics, or any third party, see what you type into the invoice form — that data never leaves your browser.</li>
+        <li>We don't sell or share any data with advertisers.</li>
         <li>We don't upload, transmit, or store the invoices, client details, or logos you create with this tool.</li>
       </ul>
 
+      <h2>Analytics</h2>
+      <p>This site uses <strong>Google Analytics</strong> to understand aggregate traffic — how many people visit, which pages are popular, and roughly how visitors found the site. It's the same kind of general usage data most websites collect, and it's entirely separate from the invoice tool.</p>
+      <p>Google Analytics uses cookies and may collect information such as your approximate location (city or region level, not precise), device and browser type, and the pages you view on this site. It does not have access to anything you type into the invoice form — your business details, client details, line items, and logo stay in your browser's local storage, as described above, and are never sent to Google or anyone else.</p>
+      <p>You can opt out of Google Analytics using a browser extension such as Google's own <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener">Analytics Opt-out Add-on</a>, or by blocking scripts from <code>googletagmanager.com</code> and <code>google-analytics.com</code> with a browser privacy setting or ad blocker. For details on how Google handles this data, see <a href="https://policies.google.com/privacy" rel="noopener">Google's Privacy Policy</a>.</p>
+
       <h2>Third-party resources</h2>
-      <p>This site loads one third-party script: the open-source <strong>jsPDF</strong> library, served from the Cloudflare CDN (cdnjs.cloudflare.com), which is what generates your downloadable PDF. Loading that file means your browser makes a request to Cloudflare's servers, which — like any web request — may log standard technical information such as your IP address, in line with Cloudflare's own privacy practices. No invoice content is included in that request; it's only fetching the library code itself.</p>
+      <p>Beyond Google Analytics (above), this site loads one other third-party script: the open-source <strong>jsPDF</strong> library, served from the Cloudflare CDN (cdnjs.cloudflare.com), which is what generates your downloadable PDF. Loading that file means your browser makes a request to Cloudflare's servers, which — like any web request — may log standard technical information such as your IP address, in line with Cloudflare's own privacy practices. No invoice content is included in that request; it's only fetching the library code itself.</p>
       <p>If this site is hosted on a static hosting provider (as most static sites are), that provider's servers will log basic technical access information (such as IP address and requested page) as part of normal web hosting operation. That's standard server behavior, separate from anything the invoicing tool itself does.</p>
 
       <h2>Children's privacy</h2>
